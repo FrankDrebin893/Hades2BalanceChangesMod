@@ -4,8 +4,13 @@
 -- Original values: Common=6, Rare=5, Epic=4, Heroic=3
 -- New values:      Common=5, Rare=4, Epic=3, Heroic=2
 
-rom.game.OnReady(function()
-    local traitData = TraitData.BoonGrowthBoon
+rom.on_import.post(function(scriptName)
+    -- Wait for TraitData_Demeter.lua to load (contains BoonGrowthBoon)
+    if scriptName ~= "TraitData_Demeter.lua" then
+        return
+    end
+
+    local traitData = rom.game.TraitData.BoonGrowthBoon
 
     if traitData then
         -- Modify RarityLevels multipliers to reduce encounters by 1

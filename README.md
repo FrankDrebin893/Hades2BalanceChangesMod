@@ -24,9 +24,9 @@ Reduces the number of encounters needed for Steady Growth to upgrade a boon by 1
 
 ### Install the Mod
 1. Download this mod (or clone the repository)
-2. Create a folder for the mod in the Hell2Modding plugins directory:
+2. Create a folder for the mod in the Hell2Modding plugins directory (folder must be `AuthorName-ModName` format):
    ```
-   Hades II\Ship\plugins\SteadyGrowthFaster\
+   Hades II\Ship\ReturnOfModding\plugins\YourName-SteadyGrowthFaster\
    ```
 3. Copy `main.lua` and `manifest.json` into that folder
 4. Launch Hades 2

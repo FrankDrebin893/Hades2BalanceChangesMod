@@ -17,7 +17,15 @@ Key script locations:
 
 ## Mod Structure
 - `manifest.json` - Thunderstore mod metadata
-- `main.lua` - Mod entry point, runs via `rom.game.OnReady()`
+- `main.lua` - Mod entry point
+
+## Hell2Modding API
+- Folder naming: Must be `AuthorName-ModName` format (e.g., `YourName-SteadyGrowthFaster`)
+- `rom.game` - Reference to game's global table (`_G`), use `rom.game.TraitData` to access traits
+- `rom.on_import.pre(fn)` - Callback before a script loads, receives (scriptName, env)
+- `rom.on_import.post(fn)` - Callback after a script loads, receives (scriptName)
+
+Scripts are loaded from `Content/Scripts/`. Hook into specific scripts like `TraitData_Demeter.lua` to modify data after it's loaded.
 
 ## Current Changes
 
