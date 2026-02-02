@@ -2,3 +2,6 @@
 deploy.ps1
 deploy.bat
 deploy.sh
+
+# Claude Code internal state
+.claude/
