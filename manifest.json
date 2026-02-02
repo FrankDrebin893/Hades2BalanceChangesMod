@@ -1,0 +1,9 @@
+{
+  "name": "SteadyGrowthFaster",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Reduces the number of encounters needed for Steady Growth upgrades by 1",
+  "dependencies": [
+    "Hell2Modding-Hell2Modding-1.0.28"
+  ]
+}
