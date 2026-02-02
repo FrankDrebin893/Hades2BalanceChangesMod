@@ -42,4 +42,9 @@ Modified to: Common=5, Rare=4, Epic=3, Heroic=2
 ## Modding Notes
 - Trait names don't always match display names (e.g., "Steady Growth" is `BoonGrowthBoon`)
 - Always verify trait names and property structures against actual game files
-- Use `rom.game.OnReady()` to ensure TraitData is loaded before modifying
+- Use `rom.on_import.post()` to hook after specific scripts load (e.g., `TraitData_Demeter.lua`)
+
+## Workflow
+- Always commit and push changes to the repository after making modifications
+- Deploy to local installation at: `C:\Program Files (x86)\Steam\steamapps\common\Hades II\Ship\ReturnOfModding\plugins\BalanceMod-SteadyGrowthFaster\`
+- Use `deploy.ps1` (gitignored) for local deployment
