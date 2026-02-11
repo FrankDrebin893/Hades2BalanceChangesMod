@@ -59,7 +59,8 @@ rom.gui.add_to_menu_bar(function()
     if rom.ImGui.BeginMenu("Force First God") then
         for i, opt in ipairs(GodOptions) do
             local idx = i - 1
-            if rom.ImGui.MenuItem(opt.name, nil, selectedGodIndex == idx) then
+            local prefix = (selectedGodIndex == idx) and "> " or "  "
+            if rom.ImGui.MenuItem(prefix .. opt.name) then
                 selectedGodIndex = idx
             end
         end
