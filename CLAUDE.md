@@ -39,6 +39,16 @@ Key properties:
 Original encounter requirements: Common=6, Rare=5, Epic=4, Heroic=3
 Modified to: Common=5, Rare=4, Epic=3, Heroic=2
 
+### Force First God
+Lets the player choose which god's boon appears as the first boon in a run via an ImGui menu (INSERT key).
+
+- ImGui menu bar entry: "Force First God" dropdown with all 9 Olympian gods + "Random (Disabled)"
+- Hooks `SetupRoomReward` in `RewardLogic.lua` via `rom.on_import.post`
+- Wraps the original function, overrides `room.ForceLootName` when reward is "Boon"
+- Tracks per-run state via `CurrentRun._forceFirstGod_applied` flag (auto-resets on new run)
+- Respects keepsake-forced boons (`room.ForcedBoonNames`)
+- Available gods: Aphrodite, Apollo, Ares, Demeter, Hephaestus, Hera, Hestia, Poseidon, Zeus
+
 ## Modding Notes
 - Trait names don't always match display names (e.g., "Steady Growth" is `BoonGrowthBoon`)
 - Always verify trait names and property structures against actual game files

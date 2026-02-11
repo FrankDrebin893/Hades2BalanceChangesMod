@@ -1,8 +1,8 @@
 {
   "name": "SteadyGrowthFaster",
-  "version_number": "1.0.0",
+  "version_number": "1.1.0",
   "website_url": "",
-  "description": "Reduces the number of encounters needed for Steady Growth upgrades by 1",
+  "description": "Balance tweaks: Steady Growth requires fewer encounters. Force First God: choose which god's boon appears first each run.",
   "dependencies": [
     "Hell2Modding-Hell2Modding-1.0.28"
   ]
