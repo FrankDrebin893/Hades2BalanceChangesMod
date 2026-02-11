@@ -2,9 +2,9 @@
 
 A mod for Hades 2 that adjusts game balance.
 
-## Current Changes
+## Features
 
-### Steady Growth (Demeter)
+### Steady Growth (Demeter) - Balance Tweak
 Reduces the number of encounters needed for Steady Growth to upgrade a boon by 1:
 
 | Rarity | Original | Modified |
@@ -13,6 +13,15 @@ Reduces the number of encounters needed for Steady Growth to upgrade a boon by 1
 | Rare | 5 encounters | 4 encounters |
 | Epic | 4 encounters | 3 encounters |
 | Heroic | 3 encounters | 2 encounters |
+
+### Force First God
+Choose which god's boon appears as the first boon in a run.
+
+- Press **INSERT** to open the mod menu, then select **Force First God**
+- Pick any of the 9 Olympian gods: Aphrodite, Apollo, Ares, Demeter, Hephaestus, Hera, Hestia, Poseidon, Zeus
+- Select "Random (Disabled)" to use default behavior
+- Only affects the first boon room of each run — normal random selection resumes after that
+- Respects keepsake-forced boons
 
 ## Installation
 
@@ -35,6 +44,7 @@ Reduces the number of encounters needed for Steady Growth to upgrade a boon by 1
 When the mod loads successfully, you'll see in the console:
 ```
 [SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1
+[ForceFirstGod] Hooked SetupRoomReward
 ```
 
 ## Uninstallation

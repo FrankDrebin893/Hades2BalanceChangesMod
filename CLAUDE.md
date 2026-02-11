@@ -27,27 +27,19 @@ Key script locations:
 
 Scripts are loaded from `Content/Scripts/`. Hook into specific scripts like `TraitData_Demeter.lua` to modify data after it's loaded.
 
-## Current Changes
+## Implementation Notes
+
+See `README.md` for the list of features and user-facing documentation. Keep README.md updated when adding or changing features.
 
 ### Steady Growth (BoonGrowthBoon)
-Located in `TraitData_Demeter.lua`. Demeter boon that upgrades a random boon's rarity after clearing encounters.
-
-Key properties:
-- `RoomsPerUpgrade.Amount.BaseValue` - Base number of rooms (default: 6)
-- `RarityLevels` - Multipliers applied to base value per rarity
-
-Original encounter requirements: Common=6, Rare=5, Epic=4, Heroic=3
-Modified to: Common=5, Rare=4, Epic=3, Heroic=2
+- Trait is in `TraitData_Demeter.lua`, hooked via `rom.on_import.post`
+- Key properties: `RoomsPerUpgrade.Amount.BaseValue` (default: 6), `RarityLevels` multipliers
 
 ### Force First God
-Lets the player choose which god's boon appears as the first boon in a run via an ImGui menu (INSERT key).
-
-- ImGui menu bar entry: "Force First God" dropdown with all 9 Olympian gods + "Random (Disabled)"
 - Hooks `SetupRoomReward` in `RewardLogic.lua` via `rom.on_import.post`
 - Wraps the original function, overrides `room.ForceLootName` when reward is "Boon"
 - Tracks per-run state via `CurrentRun._forceFirstGod_applied` flag (auto-resets on new run)
-- Respects keepsake-forced boons (`room.ForcedBoonNames`)
-- Available gods: Aphrodite, Apollo, Ares, Demeter, Hephaestus, Hera, Hestia, Poseidon, Zeus
+- ImGui menu via `rom.gui.add_to_menu_bar`
 
 ## Modding Notes
 - Trait names don't always match display names (e.g., "Steady Growth" is `BoonGrowthBoon`)
