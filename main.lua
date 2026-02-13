@@ -134,7 +134,14 @@ rom.on_import.post(function(scriptName)
         if currentRun and not currentRun._bonusSelenePoints_applied then
             currentRun._bonusSelenePoints_applied = true
             currentRun.NumTalentPoints = (currentRun.NumTalentPoints or 0) + bonusSelenePoints
-            print("[BonusSelenePoints] Granted " .. bonusSelenePoints .. " bonus talent points")
+
+            -- Open the talent screen after the spell screen finishes closing
+            rom.game.thread(function()
+                rom.game.wait(1.0)
+                rom.game.OpenTalentScreen({})
+            end)
+
+            print("[BonusSelenePoints] Granted " .. bonusSelenePoints .. " bonus talent points, opening talent screen")
         end
     end
 
