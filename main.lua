@@ -110,3 +110,33 @@ rom.on_import.post(function(scriptName)
 
     print("[ForceFirstGod] Hooked SetupRoomReward")
 end)
+
+-- ============================================================
+-- Bonus Selene Points Feature
+-- Grants 5 bonus talent points after first Selene spell pickup in a run
+-- ============================================================
+
+local bonusSelenePoints = 5
+
+rom.on_import.post(function(scriptName)
+    if scriptName ~= "SpellScreenLogic.lua" then
+        return
+    end
+
+    local OriginalAcceptAndCloseSpellScreen = rom.game.AcceptAndCloseSpellScreen
+
+    rom.game.AcceptAndCloseSpellScreen = function(screen, button)
+        -- Call original first (player selects their spell)
+        OriginalAcceptAndCloseSpellScreen(screen, button)
+
+        -- Grant bonus talent points on first spell selection of the run
+        local currentRun = rom.game.CurrentRun
+        if currentRun and not currentRun._bonusSelenePoints_applied then
+            currentRun._bonusSelenePoints_applied = true
+            currentRun.NumTalentPoints = (currentRun.NumTalentPoints or 0) + bonusSelenePoints
+            print("[BonusSelenePoints] Granted " .. bonusSelenePoints .. " bonus talent points")
+        end
+    end
+
+    print("[BonusSelenePoints] Hooked AcceptAndCloseSpellScreen")
+end)

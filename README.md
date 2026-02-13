@@ -23,6 +23,9 @@ Choose which god's boon appears as the first boon in a run.
 - Only affects the first boon room of each run — normal random selection resumes after that
 - Respects keepsake-forced boons
 
+### Bonus Selene Points
+Grants 5 bonus talent points the first time you pick up a Selene spell each run, giving you a head start on your spell's talent tree.
+
 ## Installation
 
 ### Prerequisites
@@ -45,6 +48,7 @@ When the mod loads successfully, you'll see in the console:
 ```
 [SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1
 [ForceFirstGod] Hooked SetupRoomReward
+[BonusSelenePoints] Hooked AcceptAndCloseSpellScreen
 ```
 
 ## Uninstallation

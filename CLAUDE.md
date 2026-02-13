@@ -41,6 +41,11 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 - Tracks per-run state via `CurrentRun._forceFirstGod_applied` flag (auto-resets on new run)
 - ImGui menu via `rom.gui.add_to_menu_bar`
 
+### Bonus Selene Points
+- Hooks `AcceptAndCloseSpellScreen` in `SpellScreenLogic.lua` via `rom.on_import.post`
+- Wraps the original function, adds 5 talent points to `CurrentRun.NumTalentPoints` after first spell selection
+- Tracks per-run state via `CurrentRun._bonusSelenePoints_applied` flag (auto-resets on new run)
+
 ## Modding Notes
 - Trait names don't always match display names (e.g., "Steady Growth" is `BoonGrowthBoon`)
 - Always verify trait names and property structures against actual game files
