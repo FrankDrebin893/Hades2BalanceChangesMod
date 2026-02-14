@@ -21,7 +21,8 @@ Choose what type of reward appears first in a run.
 - **God Boons:** Pick a specific god (Aphrodite, Apollo, Ares, Demeter, Hephaestus, Hera, Hestia, Poseidon, Zeus) or "God Boon (Random)" for a random god
 - **Other rewards:** Hermes, Hammer, or Selene
 - Select "Disabled" to use default behavior
-- Only affects the first reward of each run — normal random selection resumes after that
+- **Force Chaos Gate:** Toggle to guarantee a Chaos gate appears in the first eligible room
+- Only affects the first reward/room of each run — normal random selection resumes after that
 - Respects keepsake-forced boons when forcing a specific god
 
 ### Bonus Selene Points
@@ -52,6 +53,7 @@ When the mod loads successfully, you'll see in the console:
 ```
 [SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1
 [ForceFirstReward] Hooked ChooseRoomReward and SetupRoomReward
+[ForceFirstReward] Hooked HandleSecretSpawns
 [BonusSelenePoints] Hooked AcceptAndCloseSpellScreen
 [ChaosRerolls] Hooked CreateBoonLootButtons
 [ChaosRerolls] Hooked AttemptPanelReroll

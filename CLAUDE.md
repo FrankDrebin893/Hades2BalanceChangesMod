@@ -38,7 +38,9 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### Force First Reward
 - Hooks `ChooseRoomReward` in `RewardLogic.lua` to force reward type (Boon/HermesUpgrade/WeaponUpgrade/SpellDrop)
 - Hooks `SetupRoomReward` in `RewardLogic.lua` to force specific god via `room.ForceLootName` when a god is selected
+- Hooks `HandleSecretSpawns` in `RoomLogic.lua` to force Chaos gate via `room.ForceSecretDoor` in first eligible room
 - Uses `_forceFirstReward_applied` flag to limit to first reward; `_forceFirstGod_pending` to pass god choice between hooks
+- Uses `_forceChaosGate_applied` flag to limit Chaos gate forcing to first room
 - ImGui menu via `rom.gui.add_to_menu_bar`
 
 ### Bonus Selene Points

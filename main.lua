@@ -52,6 +52,7 @@ local ForceRewardOptions = {
 }
 
 local selectedRewardIndex = 0 -- 0-based, 0 = Disabled
+local forceChaosGate = false
 
 -- ImGui menu bar entry
 rom.gui.add_to_menu_bar(function()
@@ -67,6 +68,13 @@ rom.gui.add_to_menu_bar(function()
             if rom.ImGui.MenuItem(prefix .. opt.name) then
                 selectedRewardIndex = idx
             end
+        end
+        if rom.ImGui.Separator then
+            rom.ImGui.Separator()
+        end
+        local chaosPrefix = forceChaosGate and "> " or "  "
+        if rom.ImGui.MenuItem(chaosPrefix .. "Force Chaos Gate") then
+            forceChaosGate = not forceChaosGate
         end
         rom.ImGui.EndMenu()
     end
@@ -119,6 +127,27 @@ rom.on_import.post(function(scriptName)
     end
 
     print("[ForceFirstReward] Hooked ChooseRoomReward and SetupRoomReward")
+end)
+
+-- Hook RoomLogic.lua to force Chaos gate in first eligible room
+rom.on_import.post(function(scriptName)
+    if scriptName ~= "RoomLogic.lua" then
+        return
+    end
+
+    local OriginalHandleSecretSpawns = rom.game.HandleSecretSpawns
+
+    rom.game.HandleSecretSpawns = function(currentRun)
+        if forceChaosGate and not currentRun._forceChaosGate_applied then
+            currentRun._forceChaosGate_applied = true
+            currentRun.CurrentRoom.ForceSecretDoor = true
+            print("[ForceFirstReward] Forcing Chaos gate in room: " .. (currentRun.CurrentRoom.Name or "unknown"))
+        end
+
+        OriginalHandleSecretSpawns(currentRun)
+    end
+
+    print("[ForceFirstReward] Hooked HandleSecretSpawns")
 end)
 
 -- ============================================================
