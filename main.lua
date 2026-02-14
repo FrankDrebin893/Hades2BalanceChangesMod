@@ -234,7 +234,7 @@ rom.on_import.post(function(scriptName)
                 Id = components.RerollButton.Id,
                 Text = "Boon_Reroll",
                 LuaKey = "TempTextData",
-                LuaValue = { Amount = 0 }
+                LuaValue = { Amount = chaosMaxRerolls - spent }
             })
             rom.game.SetAlpha({ Id = components.RerollButton.Id, Fraction = 1.0, Duration = 0.2 })
         else
