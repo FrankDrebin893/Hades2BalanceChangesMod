@@ -188,6 +188,28 @@ rom.on_import.post(function(scriptName)
 end)
 
 -- ============================================================
+-- Remove Gathering Tool Chaos Boons
+-- Removes ChaosHarvestBlessing from the Chaos boon pool
+-- ============================================================
+
+rom.on_import.post(function(scriptName)
+    if scriptName ~= "LootData_Chaos.lua" then
+        return
+    end
+
+    local trialUpgrade = rom.game.LootData.TrialUpgrade
+    if trialUpgrade and trialUpgrade.PermanentTraits then
+        for i = #trialUpgrade.PermanentTraits, 1, -1 do
+            if trialUpgrade.PermanentTraits[i] == "ChaosHarvestBlessing" then
+                table.remove(trialUpgrade.PermanentTraits, i)
+                print("[ChaosFilter] Removed ChaosHarvestBlessing from Chaos boon pool")
+                break
+            end
+        end
+    end
+end)
+
+-- ============================================================
 -- Chaos Free Rerolls Feature
 -- Grants 3 free rerolls on Chaos boon selection screens
 -- ============================================================

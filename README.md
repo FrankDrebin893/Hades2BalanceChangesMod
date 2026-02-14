@@ -28,6 +28,9 @@ Choose what type of reward appears first in a run.
 ### Bonus Selene Points
 Grants 5 bonus talent points the first time you pick up a Selene spell each run, giving you a head start on your spell's talent tree.
 
+### Chaos Boon Filter
+Removes the gathering tool Chaos blessing (ChaosHarvestBlessing) from the Chaos boon pool, so you'll never be offered it.
+
 ### Chaos Free Rerolls
 Gives you 3 free rerolls on every Chaos boon selection screen, regardless of your current reroll count. These rerolls don't consume your regular rerolls.
 
@@ -55,6 +58,7 @@ When the mod loads successfully, you'll see in the console:
 [ForceFirstReward] Hooked ChooseRoomReward and SetupRoomReward
 [ForceFirstReward] Hooked HandleSecretSpawns
 [BonusSelenePoints] Hooked AcceptAndCloseSpellScreen
+[ChaosFilter] Removed ChaosHarvestBlessing from Chaos boon pool
 [ChaosRerolls] Hooked CreateBoonLootButtons
 [ChaosRerolls] Hooked AttemptPanelReroll
 ```

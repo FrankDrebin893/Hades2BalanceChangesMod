@@ -48,6 +48,9 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 - Wraps the original function, adds 5 talent points to `CurrentRun.NumTalentPoints` after first spell selection
 - Tracks per-run state via `CurrentRun._bonusSelenePoints_applied` flag (auto-resets on new run)
 
+### Chaos Boon Filter
+- Hooks `LootData_Chaos.lua` via `rom.on_import.post` to remove `ChaosHarvestBlessing` from `TrialUpgrade.PermanentTraits`
+
 ### Chaos Free Rerolls
 - Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for Chaos boons (`TrialUpgrade`)
 - Hooks `AttemptPanelReroll` in `InteractLogic.lua` to make Chaos rerolls free (cost = 0)
