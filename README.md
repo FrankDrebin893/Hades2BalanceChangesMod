@@ -14,14 +14,15 @@ Reduces the number of encounters needed for Steady Growth to upgrade a boon by 1
 | Epic | 4 encounters | 3 encounters |
 | Heroic | 3 encounters | 2 encounters |
 
-### Force First God
-Choose which god's boon appears as the first boon in a run.
+### Force First Reward
+Choose what type of reward appears first in a run.
 
-- Press **INSERT** to open the mod menu, then select **Force First God**
-- Pick any of the 9 Olympian gods: Aphrodite, Apollo, Ares, Demeter, Hephaestus, Hera, Hestia, Poseidon, Zeus
-- Select "Random (Disabled)" to use default behavior
-- Only affects the first boon room of each run — normal random selection resumes after that
-- Respects keepsake-forced boons
+- Press **INSERT** to open the mod menu, then select **Force First Reward**
+- **God Boons:** Pick a specific god (Aphrodite, Apollo, Ares, Demeter, Hephaestus, Hera, Hestia, Poseidon, Zeus) or "God Boon (Random)" for a random god
+- **Other rewards:** Hermes, Hammer, or Selene
+- Select "Disabled" to use default behavior
+- Only affects the first reward of each run — normal random selection resumes after that
+- Respects keepsake-forced boons when forcing a specific god
 
 ### Bonus Selene Points
 Grants 5 bonus talent points the first time you pick up a Selene spell each run, giving you a head start on your spell's talent tree.
@@ -50,7 +51,7 @@ Gives you 3 free rerolls on every Chaos boon selection screen, regardless of you
 When the mod loads successfully, you'll see in the console:
 ```
 [SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1
-[ForceFirstGod] Hooked SetupRoomReward
+[ForceFirstReward] Hooked ChooseRoomReward and SetupRoomReward
 [BonusSelenePoints] Hooked AcceptAndCloseSpellScreen
 [ChaosRerolls] Hooked CreateBoonLootButtons
 [ChaosRerolls] Hooked AttemptPanelReroll

@@ -30,85 +30,95 @@ rom.on_import.post(function(scriptName)
 end)
 
 -- ============================================================
--- Force First God Feature
--- Lets the player choose which god's boon appears first in a run
+-- Force First Reward Feature
+-- Lets the player choose the type and god of the first reward in a run
 -- ============================================================
 
-local GodOptions = {
-    { name = "Random (Disabled)", lootName = nil },
-    { name = "Aphrodite", lootName = "AphroditeUpgrade" },
-    { name = "Apollo",    lootName = "ApolloUpgrade" },
-    { name = "Ares",      lootName = "AresUpgrade" },
-    { name = "Demeter",   lootName = "DemeterUpgrade" },
-    { name = "Hephaestus",lootName = "HephaestusUpgrade" },
-    { name = "Hera",      lootName = "HeraUpgrade" },
-    { name = "Hestia",    lootName = "HestiaUpgrade" },
-    { name = "Poseidon",  lootName = "PoseidonUpgrade" },
-    { name = "Zeus",      lootName = "ZeusUpgrade" },
+local ForceRewardOptions = {
+    { name = "Disabled",           rewardType = nil,              lootName = nil,                section = "control" },
+    { name = "God Boon (Random)",  rewardType = "Boon",           lootName = nil,                section = "gods" },
+    { name = "Aphrodite",          rewardType = "Boon",           lootName = "AphroditeUpgrade", section = "gods" },
+    { name = "Apollo",             rewardType = "Boon",           lootName = "ApolloUpgrade",    section = "gods" },
+    { name = "Ares",               rewardType = "Boon",           lootName = "AresUpgrade",      section = "gods" },
+    { name = "Demeter",            rewardType = "Boon",           lootName = "DemeterUpgrade",   section = "gods" },
+    { name = "Hephaestus",         rewardType = "Boon",           lootName = "HephaestusUpgrade",section = "gods" },
+    { name = "Hera",               rewardType = "Boon",           lootName = "HeraUpgrade",      section = "gods" },
+    { name = "Hestia",             rewardType = "Boon",           lootName = "HestiaUpgrade",    section = "gods" },
+    { name = "Poseidon",           rewardType = "Boon",           lootName = "PoseidonUpgrade",  section = "gods" },
+    { name = "Zeus",               rewardType = "Boon",           lootName = "ZeusUpgrade",      section = "gods" },
+    { name = "Hermes",             rewardType = "HermesUpgrade",  lootName = nil,                section = "other" },
+    { name = "Hammer",             rewardType = "WeaponUpgrade",  lootName = nil,                section = "other" },
+    { name = "Selene",             rewardType = "SpellDrop",      lootName = nil,                section = "other" },
 }
 
-local GodDisplayNames = {}
-for i, opt in ipairs(GodOptions) do
-    GodDisplayNames[i] = opt.name
-end
-
-local selectedGodIndex = 0 -- 0-based, 0 = Random/Disabled
+local selectedRewardIndex = 0 -- 0-based, 0 = Disabled
 
 -- ImGui menu bar entry
 rom.gui.add_to_menu_bar(function()
-    if rom.ImGui.BeginMenu("Force First God") then
-        for i, opt in ipairs(GodOptions) do
+    if rom.ImGui.BeginMenu("Force First Reward") then
+        local lastSection = nil
+        for i, opt in ipairs(ForceRewardOptions) do
             local idx = i - 1
-            local prefix = (selectedGodIndex == idx) and "> " or "  "
+            if lastSection and opt.section ~= lastSection and rom.ImGui.Separator then
+                rom.ImGui.Separator()
+            end
+            lastSection = opt.section
+            local prefix = (selectedRewardIndex == idx) and "> " or "  "
             if rom.ImGui.MenuItem(prefix .. opt.name) then
-                selectedGodIndex = idx
+                selectedRewardIndex = idx
             end
         end
         rom.ImGui.EndMenu()
     end
 end)
 
--- Hook RewardLogic.lua to override first boon room
+-- Hook RewardLogic.lua to force first reward type and god
 rom.on_import.post(function(scriptName)
     if scriptName ~= "RewardLogic.lua" then
         return
     end
 
+    -- Hook ChooseRoomReward to force the reward type
+    local OriginalChooseRoomReward = rom.game.ChooseRoomReward
+
+    rom.game.ChooseRoomReward = function(run, room, rewardStoreName, previouslyChosenRewards, args)
+        local opt = ForceRewardOptions[selectedRewardIndex + 1]
+
+        if opt and opt.rewardType and not run._forceFirstReward_applied then
+            run._forceFirstReward_applied = true
+            -- If a specific god is selected, mark it for SetupRoomReward to apply
+            if opt.lootName then
+                run._forceFirstGod_pending = opt.lootName
+            end
+            print("[ForceFirstReward] Forced first reward to: " .. opt.name)
+            return opt.rewardType
+        end
+
+        return OriginalChooseRoomReward(run, room, rewardStoreName, previouslyChosenRewards, args)
+    end
+
+    -- Hook SetupRoomReward to force specific god when applicable
     local OriginalSetupRoomReward = rom.game.SetupRoomReward
 
     rom.game.SetupRoomReward = function(currentRun, room, previouslyChosenRewards, args)
         -- Call original first
         OriginalSetupRoomReward(currentRun, room, previouslyChosenRewards, args)
 
-        -- Only act on Boon rewards
-        args = args or {}
-        local chosenRewardType = args.ChosenRewardType or room.ChosenRewardType
-        if chosenRewardType ~= "Boon" then
-            return
-        end
+        -- Apply pending god override (set by ChooseRoomReward hook)
+        if currentRun._forceFirstGod_pending then
+            -- Don't override keepsake-forced boons
+            if room.ForcedBoonNames and next(room.ForcedBoonNames) ~= nil then
+                currentRun._forceFirstGod_pending = nil
+                return
+            end
 
-        -- Check if user wants to force a god
-        local opt = GodOptions[selectedGodIndex + 1]
-        if opt == nil or opt.lootName == nil then
-            return
+            room.ForceLootName = currentRun._forceFirstGod_pending
+            print("[ForceFirstReward] Forced god to: " .. currentRun._forceFirstGod_pending)
+            currentRun._forceFirstGod_pending = nil
         end
-
-        -- Only force the first boon of the run
-        if currentRun._forceFirstGod_applied then
-            return
-        end
-
-        -- Don't override keepsake-forced boons
-        if room.ForcedBoonNames and next(room.ForcedBoonNames) ~= nil then
-            return
-        end
-
-        room.ForceLootName = opt.lootName
-        currentRun._forceFirstGod_applied = true
-        print("[ForceFirstGod] Forced first boon to: " .. opt.name)
     end
 
-    print("[ForceFirstGod] Hooked SetupRoomReward")
+    print("[ForceFirstReward] Hooked ChooseRoomReward and SetupRoomReward")
 end)
 
 -- ============================================================

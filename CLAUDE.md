@@ -35,10 +35,10 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 - Trait is in `TraitData_Demeter.lua`, hooked via `rom.on_import.post`
 - Key properties: `RoomsPerUpgrade.Amount.BaseValue` (default: 6), `RarityLevels` multipliers
 
-### Force First God
-- Hooks `SetupRoomReward` in `RewardLogic.lua` via `rom.on_import.post`
-- Wraps the original function, overrides `room.ForceLootName` when reward is "Boon"
-- Tracks per-run state via `CurrentRun._forceFirstGod_applied` flag (auto-resets on new run)
+### Force First Reward
+- Hooks `ChooseRoomReward` in `RewardLogic.lua` to force reward type (Boon/HermesUpgrade/WeaponUpgrade/SpellDrop)
+- Hooks `SetupRoomReward` in `RewardLogic.lua` to force specific god via `room.ForceLootName` when a god is selected
+- Uses `_forceFirstReward_applied` flag to limit to first reward; `_forceFirstGod_pending` to pass god choice between hooks
 - ImGui menu via `rom.gui.add_to_menu_bar`
 
 ### Bonus Selene Points
