@@ -46,6 +46,12 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 - Wraps the original function, adds 5 talent points to `CurrentRun.NumTalentPoints` after first spell selection
 - Tracks per-run state via `CurrentRun._bonusSelenePoints_applied` flag (auto-resets on new run)
 
+### Chaos Free Rerolls
+- Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for Chaos boons (`TrialUpgrade`)
+- Hooks `AttemptPanelReroll` in `InteractLogic.lua` to make Chaos rerolls free (cost = 0)
+- Limits to 3 rerolls per Chaos boon panel via `SpentRerolls` tracking
+- Works even if player hasn't unlocked the reroll meta-upgrade
+
 ## Modding Notes
 - Trait names don't always match display names (e.g., "Steady Growth" is `BoonGrowthBoon`)
 - Always verify trait names and property structures against actual game files

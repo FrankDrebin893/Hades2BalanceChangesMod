@@ -147,3 +147,89 @@ rom.on_import.post(function(scriptName)
 
     print("[BonusSelenePoints] Hooked AcceptAndCloseSpellScreen")
 end)
+
+-- ============================================================
+-- Chaos Free Rerolls Feature
+-- Grants 3 free rerolls on Chaos boon selection screens
+-- ============================================================
+
+local chaosMaxRerolls = 3
+
+-- Hook UpgradeChoiceLogic.lua to override reroll display for Chaos boons
+rom.on_import.post(function(scriptName)
+    if scriptName ~= "UpgradeChoiceLogic.lua" then
+        return
+    end
+
+    local OriginalCreateBoonLootButtons = rom.game.CreateBoonLootButtons
+
+    rom.game.CreateBoonLootButtons = function(screen, lootData, reroll, args)
+        -- Call original first
+        OriginalCreateBoonLootButtons(screen, lootData, reroll, args)
+
+        -- Only override for Chaos boons (TrialUpgrade)
+        if lootData.Name ~= "TrialUpgrade" then
+            return
+        end
+
+        local components = screen.Components
+        if not components or not components.RerollButton then
+            return
+        end
+
+        -- Check how many rerolls already used on this panel
+        local spent = 0
+        if rom.game.CurrentRun.CurrentRoom.SpentRerolls then
+            spent = rom.game.CurrentRun.CurrentRoom.SpentRerolls[lootData.ObjectId] or 0
+        end
+
+        if spent < chaosMaxRerolls then
+            -- Show reroll button as free
+            components.RerollButton.Cost = 0
+            components.RerollButton.OnPressedFunctionName = "AttemptPanelReroll"
+            components.RerollButton.RerollFunctionName = "RerollBoonLoot"
+            components.RerollButton.RerollColor = lootData.LootColor
+            components.RerollButton.RerollId = lootData.ObjectId
+            components.RerollButton.LootData = lootData
+            rom.game.ModifyTextBox({
+                Id = components.RerollButton.Id,
+                Text = "Boon_Reroll",
+                LuaKey = "TempTextData",
+                LuaValue = { Amount = 0 }
+            })
+            rom.game.SetAlpha({ Id = components.RerollButton.Id, Fraction = 1.0, Duration = 0.2 })
+        else
+            -- Hide reroll button after max uses
+            rom.game.SetAlpha({ Id = components.RerollButton.Id, Fraction = 0.0, Duration = 0.2 })
+        end
+    end
+
+    print("[ChaosRerolls] Hooked CreateBoonLootButtons")
+end)
+
+-- Hook InteractLogic.lua to make Chaos rerolls free
+rom.on_import.post(function(scriptName)
+    if scriptName ~= "InteractLogic.lua" then
+        return
+    end
+
+    local OriginalAttemptPanelReroll = rom.game.AttemptPanelReroll
+
+    rom.game.AttemptPanelReroll = function(screen, button)
+        -- For Chaos boons, make rerolls free but limit to max
+        if button.LootData and button.LootData.Name == "TrialUpgrade" then
+            local spent = 0
+            if rom.game.CurrentRun.CurrentRoom.SpentRerolls then
+                spent = rom.game.CurrentRun.CurrentRoom.SpentRerolls[button.RerollId] or 0
+            end
+            if spent >= chaosMaxRerolls then
+                return
+            end
+            button.Cost = 0
+        end
+
+        OriginalAttemptPanelReroll(screen, button)
+    end
+
+    print("[ChaosRerolls] Hooked AttemptPanelReroll")
+end)

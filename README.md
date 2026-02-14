@@ -26,6 +26,9 @@ Choose which god's boon appears as the first boon in a run.
 ### Bonus Selene Points
 Grants 5 bonus talent points the first time you pick up a Selene spell each run, giving you a head start on your spell's talent tree.
 
+### Chaos Free Rerolls
+Gives you 3 free rerolls on every Chaos boon selection screen, regardless of your current reroll count. These rerolls don't consume your regular rerolls.
+
 ## Installation
 
 ### Prerequisites
@@ -49,6 +52,8 @@ When the mod loads successfully, you'll see in the console:
 [SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1
 [ForceFirstGod] Hooked SetupRoomReward
 [BonusSelenePoints] Hooked AcceptAndCloseSpellScreen
+[ChaosRerolls] Hooked CreateBoonLootButtons
+[ChaosRerolls] Hooked AttemptPanelReroll
 ```
 
 ## Uninstallation
