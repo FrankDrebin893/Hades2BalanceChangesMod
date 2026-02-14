@@ -20,7 +20,7 @@ Key script locations:
 - `main.lua` - Mod entry point
 
 ## Hell2Modding API
-- Folder naming: Must be `AuthorName-ModName` format (e.g., `YourName-SteadyGrowthFaster`)
+- Folder naming: Must be `AuthorName-ModName` format (e.g., `FrankDrebin893-FrankDrebin893Mod`)
 - `rom.game` - Reference to game's global table (`_G`), use `rom.game.TraitData` to access traits
 - `rom.on_import.pre(fn)` - Callback before a script loads, receives (scriptName, env)
 - `rom.on_import.post(fn)` - Callback after a script loads, receives (scriptName)
@@ -64,5 +64,5 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 
 ## Workflow
 - Always commit and push changes to the repository after making modifications
-- Deploy to local installation at: `C:\Program Files (x86)\Steam\steamapps\common\Hades II\Ship\ReturnOfModding\plugins\BalanceMod-SteadyGrowthFaster\`
+- Deploy to local installation at: `C:\Program Files (x86)\Steam\steamapps\common\Hades II\Ship\ReturnOfModding\plugins\FrankDrebin893-FrankDrebin893Mod\`
 - Use `deploy.ps1` (gitignored) for local deployment

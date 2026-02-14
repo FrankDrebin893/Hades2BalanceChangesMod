@@ -46,7 +46,7 @@ Gives you 3 free rerolls on every Chaos boon selection screen, regardless of you
 1. Download this mod (or clone the repository)
 2. Create a folder for the mod in the Hell2Modding plugins directory (folder must be `AuthorName-ModName` format):
    ```
-   Hades II\Ship\ReturnOfModding\plugins\YourName-SteadyGrowthFaster\
+   Hades II\Ship\ReturnOfModding\plugins\YourName-FrankDrebin893Mod\
    ```
 3. Copy `main.lua` and `manifest.json` into that folder
 4. Launch Hades 2
@@ -54,7 +54,7 @@ Gives you 3 free rerolls on every Chaos boon selection screen, regardless of you
 ### Verify Installation
 When the mod loads successfully, you'll see in the console:
 ```
-[SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1
+[SteadyGrowth] Steady Growth encounter requirements reduced by 1
 [ForceFirstReward] Hooked ChooseRoomReward and SetupRoomReward
 [ForceFirstReward] Hooked HandleSecretSpawns
 [BonusSelenePoints] Hooked AcceptAndCloseSpellScreen

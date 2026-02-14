@@ -1,8 +1,8 @@
 {
-  "name": "SteadyGrowthFaster",
-  "version_number": "1.1.0",
+  "name": "FrankDrebin893Mod",
+  "version_number": "2.0.0",
   "website_url": "",
-  "description": "Balance tweaks: Steady Growth requires fewer encounters. Force First God: choose which god's boon appears first each run.",
+  "description": "Hades 2 balance mod: Steady Growth buff, Force First Reward, Bonus Selene Points, Chaos free rerolls & boon filter.",
   "dependencies": [
     "Hell2Modding-Hell2Modding-1.0.28"
   ]

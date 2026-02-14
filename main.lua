@@ -1,4 +1,7 @@
--- SteadyGrowthFaster
+-- FrankDrebin893Mod
+-- Hades 2 balance mod
+--
+-- Steady Growth (Demeter)
 -- Reduces the number of encounters needed for Steady Growth upgrades by 1
 --
 -- Original values: Common=6, Rare=5, Epic=4, Heroic=3
@@ -23,9 +26,9 @@ rom.on_import.post(function(scriptName)
             traitData.RarityLevels.Heroic = { Multiplier = 2/6 }
         end
 
-        print("[SteadyGrowthFaster] Steady Growth encounter requirements reduced by 1")
+        print("[SteadyGrowth] Steady Growth encounter requirements reduced by 1")
     else
-        print("[SteadyGrowthFaster] Warning: Could not find BoonGrowthBoon trait data")
+        print("[SteadyGrowth] Warning: Could not find BoonGrowthBoon trait data")
     end
 end)
 
