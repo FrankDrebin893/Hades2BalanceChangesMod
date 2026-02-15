@@ -31,8 +31,15 @@ Grants 5 bonus talent points the first time you pick up a Selene spell each run,
 ### Chaos Boon Filter
 Removes the gathering tool Chaos blessing (ChaosHarvestBlessing) from the Chaos boon pool, so you'll never be offered it.
 
-### Chaos Free Rerolls
-Gives you 3 free rerolls on every Chaos boon selection screen, regardless of your current reroll count. These rerolls don't consume your regular rerolls.
+### Free Rerolls
+Gives you free rerolls on special boon selection screens, regardless of your current reroll count. These rerolls don't consume your regular rerolls.
+
+| Screen | Free Rerolls |
+|--------|-------------|
+| Chaos | 10 |
+| Selene | 10 |
+| Hermes | 10 |
+| Daedalus Hammer | 10 |
 
 ## Installation
 
@@ -59,8 +66,8 @@ When the mod loads successfully, you'll see in the console:
 [ForceFirstReward] Hooked HandleSecretSpawns
 [BonusSelenePoints] Hooked AcceptAndCloseSpellScreen
 [ChaosFilter] Removed ChaosHarvestBlessing from Chaos boon pool
-[ChaosRerolls] Hooked CreateBoonLootButtons
-[ChaosRerolls] Hooked AttemptPanelReroll
+[FreeRerolls] Hooked CreateBoonLootButtons
+[FreeRerolls] Hooked AttemptPanelReroll
 ```
 
 ## Uninstallation

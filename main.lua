@@ -213,13 +213,18 @@ rom.on_import.post(function(scriptName)
 end)
 
 -- ============================================================
--- Chaos Free Rerolls Feature
--- Grants 3 free rerolls on Chaos boon selection screens
+-- Free Rerolls Feature
+-- Grants free rerolls on Chaos, Selene, Hermes, and Hammer boon screens
 -- ============================================================
 
-local chaosMaxRerolls = 3
+local freeRerollLootTypes = {
+    TrialUpgrade   = 10,  -- Chaos: 10 rerolls
+    SpellDrop      = 10,  -- Selene: 10 rerolls
+    HermesUpgrade  = 10,  -- Hermes: 10 rerolls
+    WeaponUpgrade  = 10,  -- Daedalus Hammer: 10 rerolls
+}
 
--- Hook UpgradeChoiceLogic.lua to override reroll display for Chaos boons
+-- Hook UpgradeChoiceLogic.lua to override reroll display
 rom.on_import.post(function(scriptName)
     if scriptName ~= "UpgradeChoiceLogic.lua" then
         return
@@ -231,8 +236,9 @@ rom.on_import.post(function(scriptName)
         -- Call original first
         OriginalCreateBoonLootButtons(screen, lootData, reroll, args)
 
-        -- Only override for Chaos boons (TrialUpgrade)
-        if lootData.Name ~= "TrialUpgrade" then
+        -- Check if this loot type has free rerolls
+        local maxRerolls = freeRerollLootTypes[lootData.Name]
+        if not maxRerolls then
             return
         end
 
@@ -247,7 +253,7 @@ rom.on_import.post(function(scriptName)
             spent = rom.game.CurrentRun.CurrentRoom.SpentRerolls[lootData.ObjectId] or 0
         end
 
-        if spent < chaosMaxRerolls then
+        if spent < maxRerolls then
             -- Show reroll button as free
             components.RerollButton.Cost = 0
             components.RerollButton.OnPressedFunctionName = "AttemptPanelReroll"
@@ -259,7 +265,7 @@ rom.on_import.post(function(scriptName)
                 Id = components.RerollButton.Id,
                 Text = "Boon_Reroll",
                 LuaKey = "TempTextData",
-                LuaValue = { Amount = chaosMaxRerolls - spent }
+                LuaValue = { Amount = maxRerolls - spent }
             })
             rom.game.SetAlpha({ Id = components.RerollButton.Id, Fraction = 1.0, Duration = 0.2 })
         else
@@ -268,10 +274,10 @@ rom.on_import.post(function(scriptName)
         end
     end
 
-    print("[ChaosRerolls] Hooked CreateBoonLootButtons")
+    print("[FreeRerolls] Hooked CreateBoonLootButtons")
 end)
 
--- Hook InteractLogic.lua to make Chaos rerolls free
+-- Hook InteractLogic.lua to make rerolls free
 rom.on_import.post(function(scriptName)
     if scriptName ~= "InteractLogic.lua" then
         return
@@ -280,13 +286,14 @@ rom.on_import.post(function(scriptName)
     local OriginalAttemptPanelReroll = rom.game.AttemptPanelReroll
 
     rom.game.AttemptPanelReroll = function(screen, button)
-        -- For Chaos boons, make rerolls free but limit to max
-        if button.LootData and button.LootData.Name == "TrialUpgrade" then
+        -- For supported loot types, make rerolls free but limit to max
+        if button.LootData and freeRerollLootTypes[button.LootData.Name] then
+            local maxRerolls = freeRerollLootTypes[button.LootData.Name]
             local spent = 0
             if rom.game.CurrentRun.CurrentRoom.SpentRerolls then
                 spent = rom.game.CurrentRun.CurrentRoom.SpentRerolls[button.RerollId] or 0
             end
-            if spent >= chaosMaxRerolls then
+            if spent >= maxRerolls then
                 return
             end
             button.Cost = 0
@@ -295,5 +302,5 @@ rom.on_import.post(function(scriptName)
         OriginalAttemptPanelReroll(screen, button)
     end
 
-    print("[ChaosRerolls] Hooked AttemptPanelReroll")
+    print("[FreeRerolls] Hooked AttemptPanelReroll")
 end)

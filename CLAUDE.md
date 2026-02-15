@@ -51,10 +51,11 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### Chaos Boon Filter
 - Hooks `LootData_Chaos.lua` via `rom.on_import.post` to remove `ChaosHarvestBlessing` from `TrialUpgrade.PermanentTraits`
 
-### Chaos Free Rerolls
-- Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for Chaos boons (`TrialUpgrade`)
-- Hooks `AttemptPanelReroll` in `InteractLogic.lua` to make Chaos rerolls free (cost = 0)
-- Limits to 3 rerolls per Chaos boon panel via `SpentRerolls` tracking
+### Free Rerolls
+- Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for supported loot types
+- Hooks `AttemptPanelReroll` in `InteractLogic.lua` to make rerolls free (cost = 0)
+- Supported loot types with max rerolls: `TrialUpgrade` (Chaos, 10), `SpellDrop` (Selene, 10), `HermesUpgrade` (Hermes, 10), `WeaponUpgrade` (Hammer, 10)
+- Uses `freeRerollLootTypes` table to map loot names to reroll limits
 - Works even if player hasn't unlocked the reroll meta-upgrade
 
 ## Modding Notes
