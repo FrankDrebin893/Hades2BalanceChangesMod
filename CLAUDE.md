@@ -51,6 +51,13 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### Chaos Boon Filter
 - Hooks `LootData_Chaos.lua` via `rom.on_import.post` to remove `ChaosHarvestBlessing` from `TrialUpgrade.PermanentTraits`
 
+### Chaos Reroll Fix
+- Fixes vanilla bug where `RerollBoonLoot` passes `ExclusionNames` to `SetTraitsOnLoot`, but Chaos uses `TransformingTraits` which early-returns to `SetTransformingTraitsOnLoot` before exclusion logic runs
+- Hooks `SetTransformingTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
+- On reroll, captures current `lootData.UpgradeOptions` item names and temporarily filters them from `upgradeChoiceData.PermanentTraits`
+- Falls back to default (allows repeats) if filtered eligible pool is smaller than `GetTotalLootChoices()` (typically 3)
+- Restores original `PermanentTraits` after the call to avoid permanently modifying the data
+
 ### Free Rerolls
 - Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for supported loot types
 - Hooks `AttemptPanelReroll` in `InteractLogic.lua` to make rerolls free (cost = 0)

@@ -213,6 +213,64 @@ rom.on_import.post(function(scriptName)
 end)
 
 -- ============================================================
+-- Chaos Reroll Fix
+-- Adds exclusion logic so rerolling Chaos boons doesn't repeat the same options
+-- (The game's ExclusionNames logic is bypassed for TransformingTraits like Chaos)
+-- ============================================================
+
+rom.on_import.post(function(scriptName)
+    if scriptName ~= "TraitLogic.lua" then
+        return
+    end
+
+    local OriginalSetTransformingTraitsOnLoot = rom.game.SetTransformingTraitsOnLoot
+
+    rom.game.SetTransformingTraitsOnLoot = function(lootData, upgradeChoiceData)
+        -- Collect names of currently shown options (only set during rerolls)
+        local previousOptions = {}
+        if lootData.UpgradeOptions then
+            for _, opt in pairs(lootData.UpgradeOptions) do
+                if opt.ItemName then
+                    previousOptions[opt.ItemName] = true
+                end
+            end
+        end
+
+        -- Only apply exclusion if this is a reroll (previous options exist)
+        if next(previousOptions) then
+            local originalTraits = upgradeChoiceData.PermanentTraits
+            local filteredTraits = {}
+            for _, traitName in ipairs(originalTraits) do
+                if not previousOptions[traitName] then
+                    table.insert(filteredTraits, traitName)
+                end
+            end
+
+            -- Check that enough eligible traits remain after filtering
+            local eligibleCount = 0
+            for _, traitName in ipairs(filteredTraits) do
+                if rom.game.IsTraitEligible(rom.game.TraitData[traitName]) then
+                    eligibleCount = eligibleCount + 1
+                end
+            end
+
+            if eligibleCount >= rom.game.GetTotalLootChoices() then
+                upgradeChoiceData.PermanentTraits = filteredTraits
+                OriginalSetTransformingTraitsOnLoot(lootData, upgradeChoiceData)
+                upgradeChoiceData.PermanentTraits = originalTraits
+                print("[ChaosReroll] Rerolled with " .. eligibleCount .. " eligible traits (excluded " .. rom.game.TableLength(previousOptions) .. " previous)")
+                return
+            end
+            print("[ChaosReroll] Pool too small after exclusion (" .. eligibleCount .. " eligible), allowing repeats")
+        end
+
+        OriginalSetTransformingTraitsOnLoot(lootData, upgradeChoiceData)
+    end
+
+    print("[ChaosReroll] Hooked SetTransformingTraitsOnLoot for reroll exclusion")
+end)
+
+-- ============================================================
 -- Free Rerolls Feature
 -- Grants free rerolls on Chaos, Selene, Hermes, and Hammer boon screens
 -- ============================================================
