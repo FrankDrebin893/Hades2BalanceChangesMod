@@ -243,7 +243,11 @@ rom.on_import.post(function(scriptName)
                 table.insert(exclusionList, name)
             end
             args.ExclusionNames = exclusionList
-            print("[GodBoonReroll] Expanded exclusions to " .. #exclusionList .. " items")
+            -- Allow fresh rarity roll on each reroll (vanilla locks rarity to original RarityChances)
+            args.BoonRaritiesOverride = nil
+            args.IgnoreAllRarityBonus = nil
+            args.IgnoreRoomRarityBonus = nil
+            print("[GodBoonReroll] Expanded exclusions to " .. #exclusionList .. " items, rarity unlocked")
         end
         OriginalSetTraitsOnLoot(lootData, args)
     end
