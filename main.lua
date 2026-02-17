@@ -223,6 +223,31 @@ rom.on_import.post(function(scriptName)
         return
     end
 
+    -- Hook SetTraitsOnLoot to expand ExclusionNames to ALL current options (not just 1 random like vanilla)
+    -- Vanilla RerollBoonLoot only excludes 1 random item, allowing the other 2 to repeat
+    local OriginalSetTraitsOnLoot = rom.game.SetTraitsOnLoot
+
+    rom.game.SetTraitsOnLoot = function(lootData, args)
+        if args and args.ExclusionNames and lootData.UpgradeOptions then
+            local allExclusions = {}
+            for _, name in ipairs(args.ExclusionNames) do
+                allExclusions[name] = true
+            end
+            for _, opt in pairs(lootData.UpgradeOptions) do
+                if opt.ItemName then
+                    allExclusions[opt.ItemName] = true
+                end
+            end
+            local exclusionList = {}
+            for name, _ in pairs(allExclusions) do
+                table.insert(exclusionList, name)
+            end
+            args.ExclusionNames = exclusionList
+            print("[GodBoonReroll] Expanded exclusions to " .. #exclusionList .. " items")
+        end
+        OriginalSetTraitsOnLoot(lootData, args)
+    end
+
     local OriginalSetTransformingTraitsOnLoot = rom.game.SetTransformingTraitsOnLoot
 
     rom.game.SetTransformingTraitsOnLoot = function(lootData, upgradeChoiceData)

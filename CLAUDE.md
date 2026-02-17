@@ -51,6 +51,11 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### Chaos Boon Filter
 - Hooks `LootData_Chaos.lua` via `rom.on_import.post` to remove `ChaosHarvestBlessing` from `TrialUpgrade.PermanentTraits`
 
+### God Boon Reroll Fix
+- Fixes vanilla bug where `RerollBoonLoot` only passes 1 random item as `ExclusionNames` (not all 3 current options), so the other 2 can repeat
+- Hooks `SetTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
+- When called with `ExclusionNames` (reroll case), expands the list to include all current `lootData.UpgradeOptions` item names
+
 ### Chaos Reroll Fix
 - Fixes vanilla bug where `RerollBoonLoot` passes `ExclusionNames` to `SetTraitsOnLoot`, but Chaos uses `TransformingTraits` which early-returns to `SetTransformingTraitsOnLoot` before exclusion logic runs
 - Hooks `SetTransformingTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
