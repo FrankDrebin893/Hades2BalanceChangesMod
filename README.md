@@ -35,10 +35,11 @@ Removes the gathering tool Chaos blessing (ChaosHarvestBlessing) from the Chaos 
 Fixes a vanilla game issue where rerolling Chaos boons often shows the same blessings again. The game's reroll exclusion logic is bypassed for Chaos (TransformingTraits), so this mod adds proper exclusion — previously shown blessings are filtered out when rerolling, ensuring you see different options each time (as long as the eligible pool is large enough).
 
 ### Free Rerolls
-Gives you free rerolls on special boon selection screens, regardless of your current reroll count. These rerolls don't consume your regular rerolls.
+Gives you free rerolls on boon selection screens, regardless of your current reroll count. These rerolls don't consume your regular rerolls.
 
 | Screen | Free Rerolls |
 |--------|-------------|
+| All god boons | 10 each |
 | Chaos | 10 |
 | Selene | 10 |
 | Hermes | 10 |

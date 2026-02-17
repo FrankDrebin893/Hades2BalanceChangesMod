@@ -272,14 +272,25 @@ end)
 
 -- ============================================================
 -- Free Rerolls Feature
--- Grants free rerolls on Chaos, Selene, Hermes, and Hammer boon screens
+-- Grants free rerolls on boon screens
 -- ============================================================
 
 local freeRerollLootTypes = {
-    TrialUpgrade   = 10,  -- Chaos: 10 rerolls
-    SpellDrop      = 10,  -- Selene: 10 rerolls
-    HermesUpgrade  = 10,  -- Hermes: 10 rerolls
-    WeaponUpgrade  = 10,  -- Daedalus Hammer: 10 rerolls
+    -- Special screens
+    TrialUpgrade       = 10,  -- Chaos: 10 rerolls
+    SpellDrop          = 10,  -- Selene: 10 rerolls
+    HermesUpgrade      = 10,  -- Hermes: 10 rerolls
+    WeaponUpgrade      = 10,  -- Daedalus Hammer: 10 rerolls
+    -- God boons
+    AphroditeUpgrade   = 10,
+    ApolloUpgrade      = 10,
+    AresUpgrade        = 10,
+    DemeterUpgrade     = 10,
+    HephaestusUpgrade  = 10,
+    HeraUpgrade        = 10,
+    HestiaUpgrade      = 10,
+    PoseidonUpgrade    = 10,
+    ZeusUpgrade        = 10,
 }
 
 -- Hook UpgradeChoiceLogic.lua to override reroll display

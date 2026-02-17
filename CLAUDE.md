@@ -61,7 +61,7 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### Free Rerolls
 - Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for supported loot types
 - Hooks `AttemptPanelReroll` in `InteractLogic.lua` to make rerolls free (cost = 0)
-- Supported loot types with max rerolls: `TrialUpgrade` (Chaos, 10), `SpellDrop` (Selene, 10), `HermesUpgrade` (Hermes, 10), `WeaponUpgrade` (Hammer, 10)
+- Supported loot types with max rerolls: All god boons (10 each), `TrialUpgrade` (Chaos, 10), `SpellDrop` (Selene, 10), `HermesUpgrade` (Hermes, 10), `WeaponUpgrade` (Hammer, 10)
 - Uses `freeRerollLootTypes` table to map loot names to reroll limits
 - Works even if player hasn't unlocked the reroll meta-upgrade
 
