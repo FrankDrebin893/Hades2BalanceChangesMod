@@ -54,16 +54,22 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### God Boon Reroll Fix
 - Fixes vanilla bug where `RerollBoonLoot` only passes 1 random item as `ExclusionNames` (not all 3 current options), so the other 2 can repeat
 - Hooks `SetTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
-- Accumulates ALL historically seen options in `lootData._rerollSeenOptions` across rerolls to prevent A→B→A cycling
-- On reroll (detected via `args.ExclusionNames` being set), adds current options to history and uses full history as exclusions
+- On reroll (detected via `args.ExclusionNames` being set), expands exclusion list to all current `lootData.UpgradeOptions` item names
 
 ### Chaos Reroll Fix
 - Fixes vanilla bug where `RerollBoonLoot` passes `ExclusionNames` to `SetTraitsOnLoot`, but Chaos uses `TransformingTraits` which early-returns to `SetTransformingTraitsOnLoot` before exclusion logic runs
 - Hooks `SetTransformingTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
-- Accumulates ALL historically seen options in `lootData._rerollSeenOptions` (shared with god boon fix) to prevent A→B→A cycling
-- On reroll (detected via non-empty `lootData.UpgradeOptions`), adds current options to history and temporarily filters history from `upgradeChoiceData.PermanentTraits`
+- On reroll (detected via non-empty `lootData.UpgradeOptions`), temporarily filters current options from `upgradeChoiceData.PermanentTraits`
 - Falls back to default (allows repeats) if filtered eligible pool is smaller than `GetTotalLootChoices()` (typically 3)
 - Restores original `PermanentTraits` after the call to avoid permanently modifying the data
+
+### Bonus Rarify Uses
+- Grants 10 rarity upgrade uses per run (same mechanic as Zagreus's Calling Card keepsake)
+- Hover over a boon option on any god boon screen to upgrade its rarity (Common→Rare→Epic→Heroic)
+- Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua`; injects a minimal `RarifyKeepsake` trait into `CurrentRun.Hero.Traits` and `CurrentRun.Hero.TraitDictionary` on first boon screen of the run
+- `UpgradeMouseOverUpgradeChoice` (vanilla) finds the trait via `RarityUpgradeData` and handles all UI/upgrade logic automatically
+- Key trait fields: `Uses = 10`, `MultiUse = true`, `MaxRarity = 3` (caps at Heroic), `RequireFated = false`
+- If player has `RarifyKeepsake` naturally (as equipped keepsake), boosts their uses to 10 instead
 
 ### Free Rerolls
 - Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua` to override reroll button for supported loot types

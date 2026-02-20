@@ -229,15 +229,18 @@ rom.on_import.post(function(scriptName)
 
     rom.game.SetTraitsOnLoot = function(lootData, args)
         if args and args.ExclusionNames and lootData.UpgradeOptions then
-            -- Accumulate ALL historically seen options to prevent A→B→A cycling
-            lootData._rerollSeenOptions = lootData._rerollSeenOptions or {}
+            -- Expand ExclusionNames to all current options (vanilla only passes 1 random)
+            local allExclusions = {}
+            for _, name in ipairs(args.ExclusionNames) do
+                allExclusions[name] = true
+            end
             for _, opt in pairs(lootData.UpgradeOptions) do
                 if opt.ItemName then
-                    lootData._rerollSeenOptions[opt.ItemName] = true
+                    allExclusions[opt.ItemName] = true
                 end
             end
             local exclusionList = {}
-            for name, _ in pairs(lootData._rerollSeenOptions) do
+            for name, _ in pairs(allExclusions) do
                 table.insert(exclusionList, name)
             end
             args.ExclusionNames = exclusionList
@@ -245,7 +248,7 @@ rom.on_import.post(function(scriptName)
             args.BoonRaritiesOverride = nil
             args.IgnoreAllRarityBonus = nil
             args.IgnoreRoomRarityBonus = nil
-            print("[GodBoonReroll] Excluding " .. #exclusionList .. " historically seen boons")
+            print("[GodBoonReroll] Excluding " .. #exclusionList .. " current boons")
         end
         OriginalSetTraitsOnLoot(lootData, args)
     end
@@ -254,20 +257,20 @@ rom.on_import.post(function(scriptName)
 
     rom.game.SetTransformingTraitsOnLoot = function(lootData, upgradeChoiceData)
         -- Only apply exclusion if this is a reroll (UpgradeOptions already populated)
-        local hasCurrentOptions = lootData.UpgradeOptions and next(lootData.UpgradeOptions)
-        if hasCurrentOptions then
-            -- Accumulate ALL historically seen options to prevent A→B→A cycling
-            lootData._rerollSeenOptions = lootData._rerollSeenOptions or {}
+        local currentOptions = {}
+        if lootData.UpgradeOptions then
             for _, opt in pairs(lootData.UpgradeOptions) do
                 if opt.ItemName then
-                    lootData._rerollSeenOptions[opt.ItemName] = true
+                    currentOptions[opt.ItemName] = true
                 end
             end
+        end
 
+        if next(currentOptions) then
             local originalTraits = upgradeChoiceData.PermanentTraits
             local filteredTraits = {}
             for _, traitName in ipairs(originalTraits) do
-                if not lootData._rerollSeenOptions[traitName] then
+                if not currentOptions[traitName] then
                     table.insert(filteredTraits, traitName)
                 end
             end
@@ -284,9 +287,7 @@ rom.on_import.post(function(scriptName)
                 upgradeChoiceData.PermanentTraits = filteredTraits
                 OriginalSetTransformingTraitsOnLoot(lootData, upgradeChoiceData)
                 upgradeChoiceData.PermanentTraits = originalTraits
-                local seenCount = 0
-                for _ in pairs(lootData._rerollSeenOptions) do seenCount = seenCount + 1 end
-                print("[ChaosReroll] Rerolled with " .. eligibleCount .. " eligible traits (excluded " .. seenCount .. " seen)")
+                print("[ChaosReroll] Rerolled with " .. eligibleCount .. " eligible traits")
                 return
             end
             print("[ChaosReroll] Pool too small after exclusion (" .. eligibleCount .. " eligible), allowing repeats")
@@ -297,6 +298,14 @@ rom.on_import.post(function(scriptName)
 
     print("[ChaosReroll] Hooked SetTransformingTraitsOnLoot for reroll exclusion")
 end)
+
+-- ============================================================
+-- Bonus Rarify Uses Feature
+-- Grants 10 rarity upgrade uses per run (Calling Card mechanic)
+-- Hover over a boon option on any god boon screen to upgrade its rarity
+-- ============================================================
+
+local bonusRarifyUses = 10
 
 -- ============================================================
 -- Free Rerolls Feature
@@ -332,6 +341,39 @@ rom.on_import.post(function(scriptName)
     rom.game.CreateBoonLootButtons = function(screen, lootData, reroll, args)
         -- Call original first
         OriginalCreateBoonLootButtons(screen, lootData, reroll, args)
+
+        -- Grant rarify uses at start of each run (once, on first boon screen)
+        local currentRun = rom.game.CurrentRun
+        if currentRun and not currentRun._rarifyGranted then
+            currentRun._rarifyGranted = true
+            if rom.game.HeroHasTrait("RarifyKeepsake") then
+                -- Player has the keepsake naturally; boost their uses
+                local trait = rom.game.GetHeroTrait("RarifyKeepsake")
+                if trait and trait.RarityUpgradeData then
+                    trait.RarityUpgradeData.Uses = math.max(trait.RarityUpgradeData.Uses or 0, bonusRarifyUses)
+                    trait.RarityUpgradeData.RequireFated = false
+                    trait.RarityUpgradeData.RequireNotExcludeFromLastRunBoon = false
+                end
+            else
+                -- Inject a minimal RarifyKeepsake trait so the game's hover-to-rarify
+                -- logic (UpgradeMouseOverUpgradeChoice) picks it up automatically
+                local rarifyTrait = {
+                    Name = "RarifyKeepsake",
+                    RarityUpgradeData = {
+                        Uses = bonusRarifyUses,
+                        MultiUse = true,
+                        MaxRarity = 3,
+                        RequireFated = false,
+                        RequireNotExcludeFromLastRunBoon = false,
+                    },
+                }
+                table.insert(currentRun.Hero.Traits, rarifyTrait)
+                if currentRun.Hero.TraitDictionary then
+                    currentRun.Hero.TraitDictionary["RarifyKeepsake"] = rarifyTrait
+                end
+            end
+            print("[BonusRarify] Granted " .. bonusRarifyUses .. " rarify uses for this run")
+        end
 
         -- Check if this loot type has free rerolls
         local maxRerolls = freeRerollLootTypes[lootData.Name]
