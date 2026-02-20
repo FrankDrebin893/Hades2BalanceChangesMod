@@ -352,6 +352,20 @@ rom.on_import.post(function(scriptName)
         return
     end
 
+    -- Wrap UpgradeMouseOverUpgradeChoice: allow one upgrade per hover-enter event.
+    -- The function fires every frame while hovering. We deduplicate by tracking the
+    -- last button that was upgraded; if the mouse is still over the same button,
+    -- skip. When the mouse moves to a different boon, the upgrade fires once.
+    local OriginalUpgradeMouseOver = rom.game.UpgradeMouseOverUpgradeChoice
+    rom.game.UpgradeMouseOverUpgradeChoice = function(screen, button)
+        local currentButton = screen and screen.MouseOverButton
+        if currentButton ~= nil and currentButton == screen._rarifyLastButton then
+            return
+        end
+        screen._rarifyLastButton = currentButton
+        return OriginalUpgradeMouseOver(screen, button)
+    end
+
     local OriginalCreateBoonLootButtons = rom.game.CreateBoonLootButtons
 
     rom.game.CreateBoonLootButtons = function(screen, lootData, reroll, args)
@@ -367,6 +381,7 @@ rom.on_import.post(function(scriptName)
                 local trait = rom.game.GetHeroTrait("RarifyKeepsake")
                 if trait and trait.RarityUpgradeData then
                     trait.RarityUpgradeData.Uses = math.max(trait.RarityUpgradeData.Uses or 0, bonusRarifyUses)
+                    trait.RarityUpgradeData.MultiUse = true
                     trait.RarityUpgradeData.RequireFated = false
                     trait.RarityUpgradeData.RequireNotExcludeFromLastRunBoon = false
                 end
@@ -377,6 +392,7 @@ rom.on_import.post(function(scriptName)
                     Name = "RarifyKeepsake",
                     RarityUpgradeData = {
                         Uses = bonusRarifyUses,
+                        MultiUse = true,
                         MaxRarity = 3,
                         RequireFated = false,
                         RequireNotExcludeFromLastRunBoon = false,

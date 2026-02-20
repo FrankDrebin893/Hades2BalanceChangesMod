@@ -68,8 +68,9 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 - Hover over a boon option on any god boon screen to upgrade its rarity (Common→Rare→Epic→Heroic)
 - Hooks `CreateBoonLootButtons` in `UpgradeChoiceLogic.lua`; injects a minimal `RarifyKeepsake` trait into `CurrentRun.Hero.Traits` and `CurrentRun.Hero.TraitDictionary` on first boon screen of the run
 - `UpgradeMouseOverUpgradeChoice` (vanilla) finds the trait via `RarityUpgradeData` and handles all UI/upgrade logic automatically
-- Key trait fields: `Uses = 10`, `MaxRarity = 3` (caps at Heroic), `RequireFated = false`
-- Do NOT set `MultiUse = true`: `UpgradeMouseOverUpgradeChoice` fires every frame while hovering; the `screen.UpgradedRarity` check (`if screen.UpgradedRarity and not MultiUse then return end`) is the only per-frame guard. With `MultiUse = true` that guard is bypassed, draining 3 uses per boon hover (Common→Rare→Epic→Heroic) and exhausting all 10 uses in ~1-2 screens.
+- Key trait fields: `Uses = 10`, `MultiUse = true`, `MaxRarity = 3` (caps at Heroic), `RequireFated = false`
+- `MultiUse = true` is needed so `screen.UpgradedRarity` doesn't block the whole screen after 1 upgrade
+- `UpgradeMouseOverUpgradeChoice` fires every frame while hovering, so we wrap it and track `screen._rarifyLastButton`: skip if `screen.MouseOverButton == screen._rarifyLastButton`. This gives 1 upgrade per hover-enter event; holding the mouse still does nothing. To upgrade a boon multiple tiers, hover away and back each time.
 - If player has `RarifyKeepsake` naturally (as equipped keepsake), boosts their uses to 10 instead
 
 ### Free Rerolls
