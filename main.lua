@@ -377,7 +377,6 @@ rom.on_import.post(function(scriptName)
                     Name = "RarifyKeepsake",
                     RarityUpgradeData = {
                         Uses = bonusRarifyUses,
-                        MultiUse = true,
                         MaxRarity = 3,
                         RequireFated = false,
                         RequireNotExcludeFromLastRunBoon = false,
