@@ -54,12 +54,14 @@ See `README.md` for the list of features and user-facing documentation. Keep REA
 ### God Boon Reroll Fix
 - Fixes vanilla bug where `RerollBoonLoot` only passes 1 random item as `ExclusionNames` (not all 3 current options), so the other 2 can repeat
 - Hooks `SetTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
-- When called with `ExclusionNames` (reroll case), expands the list to include all current `lootData.UpgradeOptions` item names
+- Accumulates ALL historically seen options in `lootData._rerollSeenOptions` across rerolls to prevent A→B→A cycling
+- On reroll (detected via `args.ExclusionNames` being set), adds current options to history and uses full history as exclusions
 
 ### Chaos Reroll Fix
 - Fixes vanilla bug where `RerollBoonLoot` passes `ExclusionNames` to `SetTraitsOnLoot`, but Chaos uses `TransformingTraits` which early-returns to `SetTransformingTraitsOnLoot` before exclusion logic runs
 - Hooks `SetTransformingTraitsOnLoot` in `TraitLogic.lua` via `rom.on_import.post`
-- On reroll, captures current `lootData.UpgradeOptions` item names and temporarily filters them from `upgradeChoiceData.PermanentTraits`
+- Accumulates ALL historically seen options in `lootData._rerollSeenOptions` (shared with god boon fix) to prevent A→B→A cycling
+- On reroll (detected via non-empty `lootData.UpgradeOptions`), adds current options to history and temporarily filters history from `upgradeChoiceData.PermanentTraits`
 - Falls back to default (allows repeats) if filtered eligible pool is smaller than `GetTotalLootChoices()` (typically 3)
 - Restores original `PermanentTraits` after the call to avoid permanently modifying the data
 

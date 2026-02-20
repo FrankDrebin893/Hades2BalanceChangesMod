@@ -229,25 +229,23 @@ rom.on_import.post(function(scriptName)
 
     rom.game.SetTraitsOnLoot = function(lootData, args)
         if args and args.ExclusionNames and lootData.UpgradeOptions then
-            local allExclusions = {}
-            for _, name in ipairs(args.ExclusionNames) do
-                allExclusions[name] = true
-            end
+            -- Accumulate ALL historically seen options to prevent A→B→A cycling
+            lootData._rerollSeenOptions = lootData._rerollSeenOptions or {}
             for _, opt in pairs(lootData.UpgradeOptions) do
                 if opt.ItemName then
-                    allExclusions[opt.ItemName] = true
+                    lootData._rerollSeenOptions[opt.ItemName] = true
                 end
             end
             local exclusionList = {}
-            for name, _ in pairs(allExclusions) do
+            for name, _ in pairs(lootData._rerollSeenOptions) do
                 table.insert(exclusionList, name)
             end
             args.ExclusionNames = exclusionList
-            -- Allow fresh rarity roll on each reroll (vanilla locks rarity to original RarityChances)
+            -- Allow fresh rarity roll on each reroll
             args.BoonRaritiesOverride = nil
             args.IgnoreAllRarityBonus = nil
             args.IgnoreRoomRarityBonus = nil
-            print("[GodBoonReroll] Expanded exclusions to " .. #exclusionList .. " items, rarity unlocked")
+            print("[GodBoonReroll] Excluding " .. #exclusionList .. " historically seen boons")
         end
         OriginalSetTraitsOnLoot(lootData, args)
     end
@@ -255,22 +253,21 @@ rom.on_import.post(function(scriptName)
     local OriginalSetTransformingTraitsOnLoot = rom.game.SetTransformingTraitsOnLoot
 
     rom.game.SetTransformingTraitsOnLoot = function(lootData, upgradeChoiceData)
-        -- Collect names of currently shown options (only set during rerolls)
-        local previousOptions = {}
-        if lootData.UpgradeOptions then
+        -- Only apply exclusion if this is a reroll (UpgradeOptions already populated)
+        local hasCurrentOptions = lootData.UpgradeOptions and next(lootData.UpgradeOptions)
+        if hasCurrentOptions then
+            -- Accumulate ALL historically seen options to prevent A→B→A cycling
+            lootData._rerollSeenOptions = lootData._rerollSeenOptions or {}
             for _, opt in pairs(lootData.UpgradeOptions) do
                 if opt.ItemName then
-                    previousOptions[opt.ItemName] = true
+                    lootData._rerollSeenOptions[opt.ItemName] = true
                 end
             end
-        end
 
-        -- Only apply exclusion if this is a reroll (previous options exist)
-        if next(previousOptions) then
             local originalTraits = upgradeChoiceData.PermanentTraits
             local filteredTraits = {}
             for _, traitName in ipairs(originalTraits) do
-                if not previousOptions[traitName] then
+                if not lootData._rerollSeenOptions[traitName] then
                     table.insert(filteredTraits, traitName)
                 end
             end
@@ -287,7 +284,9 @@ rom.on_import.post(function(scriptName)
                 upgradeChoiceData.PermanentTraits = filteredTraits
                 OriginalSetTransformingTraitsOnLoot(lootData, upgradeChoiceData)
                 upgradeChoiceData.PermanentTraits = originalTraits
-                print("[ChaosReroll] Rerolled with " .. eligibleCount .. " eligible traits (excluded " .. rom.game.TableLength(previousOptions) .. " previous)")
+                local seenCount = 0
+                for _ in pairs(lootData._rerollSeenOptions) do seenCount = seenCount + 1 end
+                print("[ChaosReroll] Rerolled with " .. eligibleCount .. " eligible traits (excluded " .. seenCount .. " seen)")
                 return
             end
             print("[ChaosReroll] Pool too small after exclusion (" .. eligibleCount .. " eligible), allowing repeats")
