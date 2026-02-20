@@ -223,6 +223,22 @@ rom.on_import.post(function(scriptName)
         return
     end
 
+    -- Wrap GetHeroTrait to find injected traits (e.g. RarifyKeepsake) via linear search
+    -- when TraitDictionary lookup returns nil (raw Lua assignment to TraitDictionary may not stick)
+    local OriginalGetHeroTrait = rom.game.GetHeroTrait
+    rom.game.GetHeroTrait = function(traitName)
+        local result = OriginalGetHeroTrait(traitName)
+        if result == nil and traitName == "RarifyKeepsake"
+                and rom.game.CurrentRun and rom.game.CurrentRun.Hero then
+            for _, trait in ipairs(rom.game.CurrentRun.Hero.Traits) do
+                if trait.Name == traitName then
+                    return trait
+                end
+            end
+        end
+        return result
+    end
+
     -- Hook SetTraitsOnLoot to expand ExclusionNames to ALL current options (not just 1 random like vanilla)
     -- Vanilla RerollBoonLoot only excludes 1 random item, allowing the other 2 to repeat
     local OriginalSetTraitsOnLoot = rom.game.SetTraitsOnLoot
