@@ -241,24 +241,26 @@ rom.on_import.post(function(scriptName)
         return result
     end
 
-    -- Hook SetTraitsOnLoot to exclude ALL historically seen boons (not just current options)
-    -- Vanilla only passes 1 random exclusion; without history, rerolls cycle between the same sets
+    -- Hook SetTraitsOnLoot to exclude all 3 current options on reroll.
+    -- Vanilla bug: RerollBoonLoot only passes 1 random item as ExclusionNames, so the other 2
+    -- can repeat immediately. We expand it to all current UpgradeOptions so every reroll
+    -- shows 3 boons you haven't just seen. Previous sets can come back on future rerolls.
     local OriginalSetTraitsOnLoot = rom.game.SetTraitsOnLoot
 
     rom.game.SetTraitsOnLoot = function(lootData, args)
         if args and args.ExclusionNames and lootData.UpgradeOptions then
-            -- Accumulate current options into persistent history for this loot screen
-            if not lootData._allSeenBoons then
-                lootData._allSeenBoons = {}
+            -- Expand ExclusionNames to cover all 3 current options (not just 1 random)
+            local allExclusions = {}
+            for _, name in ipairs(args.ExclusionNames) do
+                allExclusions[name] = true
             end
             for _, opt in pairs(lootData.UpgradeOptions) do
                 if opt.ItemName then
-                    lootData._allSeenBoons[opt.ItemName] = true
+                    allExclusions[opt.ItemName] = true
                 end
             end
-            -- Exclude everything seen so far (prevents cycling back to earlier sets)
             local exclusionList = {}
-            for name, _ in pairs(lootData._allSeenBoons) do
+            for name, _ in pairs(allExclusions) do
                 table.insert(exclusionList, name)
             end
             args.ExclusionNames = exclusionList
@@ -266,7 +268,7 @@ rom.on_import.post(function(scriptName)
             args.BoonRaritiesOverride = nil
             args.IgnoreAllRarityBonus = nil
             args.IgnoreRoomRarityBonus = nil
-            print("[GodBoonReroll] Excluding " .. #exclusionList .. " historically seen boons")
+            print("[GodBoonReroll] Excluding " .. #exclusionList .. " current boons")
         end
         OriginalSetTraitsOnLoot(lootData, args)
     end
@@ -285,18 +287,10 @@ rom.on_import.post(function(scriptName)
         end
 
         if next(currentOptions) then
-            -- Accumulate current options into persistent history for this loot screen
-            if not lootData._allSeenBoons then
-                lootData._allSeenBoons = {}
-            end
-            for name, _ in pairs(currentOptions) do
-                lootData._allSeenBoons[name] = true
-            end
-
             local originalTraits = upgradeChoiceData.PermanentTraits
             local filteredTraits = {}
             for _, traitName in ipairs(originalTraits) do
-                if not lootData._allSeenBoons[traitName] then
+                if not currentOptions[traitName] then
                     table.insert(filteredTraits, traitName)
                 end
             end
