@@ -361,15 +361,23 @@ rom.on_import.post(function(scriptName)
     -- Lua is single-threaded, so no other system sees the trait during this window.
     local OriginalUpgradeMouseOver = rom.game.UpgradeMouseOverUpgradeChoice
     rom.game.UpgradeMouseOverUpgradeChoice = function(screen, button)
-        if button == screen._rarifyLastButton then
-            -- Same button, still hovering — vanilla's UpgradedRarity flag is already set,
-            -- so it won't upgrade again. Just return.
-            return
+        -- Deduplicate by boon trait name, NOT by button object identity.
+        -- After each upgrade the button is destroyed and recreated (TryUpgradeBoon line 1307),
+        -- so tracking by object causes the auto-hover of the new button to advance the
+        -- dedup key, permanently blocking re-hover of the same boon.
+        -- Tracking by name: same boon = skip, nil (off buttons) = reset, different boon = allow.
+        local currentName = button and button.Data and button.Data.Name
+        if currentName ~= nil and currentName == screen._rarifyLastName then
+            return -- Still hovering same boon (or newly created replacement button)
         end
-        -- Hover-enter: new button (or moved off all buttons).
-        -- Clear vanilla's per-hover dedup flag so it can upgrade on this new hover-enter.
+        screen._rarifyLastName = currentName -- nil when off buttons, resets between hovers
+
+        if currentName == nil then
+            return -- Not hovering any boon; reset done above
+        end
+
+        -- New hover-enter on a different boon: clear vanilla's per-hover dedup flag
         screen.UpgradedRarity = nil
-        screen._rarifyLastButton = button
 
         local currentRun = rom.game.CurrentRun
         local modTrait = currentRun and currentRun._modRarifyTrait
