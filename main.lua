@@ -223,40 +223,36 @@ rom.on_import.post(function(scriptName)
         return
     end
 
-    -- Wrap GetHeroTrait to find injected traits (e.g. RarifyKeepsake) via linear search
-    -- when TraitDictionary lookup returns nil (raw Lua assignment to TraitDictionary may not stick)
+    -- Wrap GetHeroTrait to return mod-injected RarifyKeepsake from mod-specific storage
+    -- (not from Hero.Traits, to avoid the game treating it as an equipped keepsake)
     local OriginalGetHeroTrait = rom.game.GetHeroTrait
     rom.game.GetHeroTrait = function(traitName)
         local result = OriginalGetHeroTrait(traitName)
         if result == nil and traitName == "RarifyKeepsake"
-                and rom.game.CurrentRun and rom.game.CurrentRun.Hero then
-            for _, trait in ipairs(rom.game.CurrentRun.Hero.Traits) do
-                if trait.Name == traitName then
-                    return trait
-                end
-            end
+                and rom.game.CurrentRun and rom.game.CurrentRun._modRarifyTrait then
+            return rom.game.CurrentRun._modRarifyTrait
         end
         return result
     end
 
-    -- Hook SetTraitsOnLoot to expand ExclusionNames to ALL current options (not just 1 random like vanilla)
-    -- Vanilla RerollBoonLoot only excludes 1 random item, allowing the other 2 to repeat
+    -- Hook SetTraitsOnLoot to exclude ALL historically seen boons (not just current options)
+    -- Vanilla only passes 1 random exclusion; without history, rerolls cycle between the same sets
     local OriginalSetTraitsOnLoot = rom.game.SetTraitsOnLoot
 
     rom.game.SetTraitsOnLoot = function(lootData, args)
         if args and args.ExclusionNames and lootData.UpgradeOptions then
-            -- Expand ExclusionNames to all current options (vanilla only passes 1 random)
-            local allExclusions = {}
-            for _, name in ipairs(args.ExclusionNames) do
-                allExclusions[name] = true
+            -- Accumulate current options into persistent history for this loot screen
+            if not lootData._allSeenBoons then
+                lootData._allSeenBoons = {}
             end
             for _, opt in pairs(lootData.UpgradeOptions) do
                 if opt.ItemName then
-                    allExclusions[opt.ItemName] = true
+                    lootData._allSeenBoons[opt.ItemName] = true
                 end
             end
+            -- Exclude everything seen so far (prevents cycling back to earlier sets)
             local exclusionList = {}
-            for name, _ in pairs(allExclusions) do
+            for name, _ in pairs(lootData._allSeenBoons) do
                 table.insert(exclusionList, name)
             end
             args.ExclusionNames = exclusionList
@@ -264,7 +260,7 @@ rom.on_import.post(function(scriptName)
             args.BoonRaritiesOverride = nil
             args.IgnoreAllRarityBonus = nil
             args.IgnoreRoomRarityBonus = nil
-            print("[GodBoonReroll] Excluding " .. #exclusionList .. " current boons")
+            print("[GodBoonReroll] Excluding " .. #exclusionList .. " historically seen boons")
         end
         OriginalSetTraitsOnLoot(lootData, args)
     end
@@ -283,10 +279,18 @@ rom.on_import.post(function(scriptName)
         end
 
         if next(currentOptions) then
+            -- Accumulate current options into persistent history for this loot screen
+            if not lootData._allSeenBoons then
+                lootData._allSeenBoons = {}
+            end
+            for name, _ in pairs(currentOptions) do
+                lootData._allSeenBoons[name] = true
+            end
+
             local originalTraits = upgradeChoiceData.PermanentTraits
             local filteredTraits = {}
             for _, traitName in ipairs(originalTraits) do
-                if not currentOptions[traitName] then
+                if not lootData._allSeenBoons[traitName] then
                     table.insert(filteredTraits, traitName)
                 end
             end
@@ -377,7 +381,7 @@ rom.on_import.post(function(scriptName)
         if currentRun and not currentRun._rarifyGranted then
             currentRun._rarifyGranted = true
             if rom.game.HeroHasTrait("RarifyKeepsake") then
-                -- Player has the keepsake naturally; boost their uses
+                -- Player has the real Calling Card keepsake; boost their uses
                 local trait = rom.game.GetHeroTrait("RarifyKeepsake")
                 if trait and trait.RarityUpgradeData then
                     trait.RarityUpgradeData.Uses = math.max(trait.RarityUpgradeData.Uses or 0, bonusRarifyUses)
@@ -386,9 +390,10 @@ rom.on_import.post(function(scriptName)
                     trait.RarityUpgradeData.RequireNotExcludeFromLastRunBoon = false
                 end
             else
-                -- Inject a minimal RarifyKeepsake trait so the game's hover-to-rarify
-                -- logic (UpgradeMouseOverUpgradeChoice) picks it up automatically
-                local rarifyTrait = {
+                -- Store rarify data in mod-specific field, NOT in Hero.Traits/TraitDictionary.
+                -- GetHeroTrait is hooked to return this, so hover-to-rarify still works,
+                -- but keepsake display/effect systems won't see it as an equipped keepsake.
+                currentRun._modRarifyTrait = {
                     Name = "RarifyKeepsake",
                     RarityUpgradeData = {
                         Uses = bonusRarifyUses,
@@ -398,10 +403,6 @@ rom.on_import.post(function(scriptName)
                         RequireNotExcludeFromLastRunBoon = false,
                     },
                 }
-                table.insert(currentRun.Hero.Traits, rarifyTrait)
-                if currentRun.Hero.TraitDictionary then
-                    currentRun.Hero.TraitDictionary["RarifyKeepsake"] = rarifyTrait
-                end
             end
             print("[BonusRarify] Granted " .. bonusRarifyUses .. " rarify uses for this run")
         end
