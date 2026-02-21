@@ -362,8 +362,13 @@ rom.on_import.post(function(scriptName)
     local OriginalUpgradeMouseOver = rom.game.UpgradeMouseOverUpgradeChoice
     rom.game.UpgradeMouseOverUpgradeChoice = function(screen, button)
         if button == screen._rarifyLastButton then
+            -- Same button, still hovering — vanilla's UpgradedRarity flag is already set,
+            -- so it won't upgrade again. Just return.
             return
         end
+        -- Hover-enter: new button (or moved off all buttons).
+        -- Clear vanilla's per-hover dedup flag so it can upgrade on this new hover-enter.
+        screen.UpgradedRarity = nil
         screen._rarifyLastButton = button
 
         local currentRun = rom.game.CurrentRun
