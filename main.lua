@@ -358,15 +358,14 @@ rom.on_import.post(function(scriptName)
 
     -- Wrap UpgradeMouseOverUpgradeChoice: allow one upgrade per hover-enter event.
     -- The function fires every frame while hovering. We deduplicate by tracking the
-    -- last button that was upgraded; if the mouse is still over the same button,
-    -- skip. When the mouse moves to a different boon, the upgrade fires once.
+    -- last button argument; if it hasn't changed the mouse is still over the same boon,
+    -- so we skip. When the mouse enters a new boon button the upgrade fires once.
     local OriginalUpgradeMouseOver = rom.game.UpgradeMouseOverUpgradeChoice
     rom.game.UpgradeMouseOverUpgradeChoice = function(screen, button)
-        local currentButton = screen and screen.MouseOverButton
-        if currentButton ~= nil and currentButton == screen._rarifyLastButton then
+        if button == screen._rarifyLastButton then
             return
         end
-        screen._rarifyLastButton = currentButton
+        screen._rarifyLastButton = button
         return OriginalUpgradeMouseOver(screen, button)
     end
 
