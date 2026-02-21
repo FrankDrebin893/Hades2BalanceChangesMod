@@ -351,61 +351,18 @@ rom.on_import.post(function(scriptName)
         return
     end
 
-    -- Wrap UpgradeMouseOverUpgradeChoice: allow one upgrade per hover-enter event.
-    -- The function fires every frame while hovering. We deduplicate by tracking the
-    -- last button argument; if it hasn't changed the mouse is still over the same boon,
-    -- so we skip. When the mouse enters a new boon button the upgrade fires once.
-    --
-    -- Vanilla iterates Hero.Traits directly to find RarifyKeepsake, so we temporarily
-    -- inject our mod trait for the duration of this call, then remove it immediately.
-    -- Lua is single-threaded, so no other system sees the trait during this window.
-    local OriginalUpgradeMouseOver = rom.game.UpgradeMouseOverUpgradeChoice
-    rom.game.UpgradeMouseOverUpgradeChoice = function(screen, button)
-        -- Deduplicate by boon trait name, NOT by button object identity.
-        -- After each upgrade the button is destroyed and recreated (TryUpgradeBoon line 1307),
-        -- so tracking by object causes the auto-hover of the new button to advance the
-        -- dedup key, permanently blocking re-hover of the same boon.
-        -- Tracking by name: same boon = skip, nil (off buttons) = reset, different boon = allow.
-        local currentName = button and button.Data and button.Data.Name
-        if currentName ~= nil and currentName == screen._rarifyLastName then
-            return -- Still hovering same boon (or newly created replacement button)
-        end
-        screen._rarifyLastName = currentName -- nil when off buttons, resets between hovers
-
-        if currentName == nil then
-            return -- Not hovering any boon; reset done above
-        end
-
-        -- New hover-enter on a different boon: clear vanilla's per-hover dedup flag
-        screen.UpgradedRarity = nil
-
-        local currentRun = rom.game.CurrentRun
-        local modTrait = currentRun and currentRun._modRarifyTrait
-        if modTrait then
-            table.insert(currentRun.Hero.Traits, modTrait)
-        end
-
-        local result = OriginalUpgradeMouseOver(screen, button)
-
-        if modTrait then
-            for i = #currentRun.Hero.Traits, 1, -1 do
-                if currentRun.Hero.Traits[i] == modTrait then
-                    table.remove(currentRun.Hero.Traits, i)
-                    break
-                end
-            end
-        end
-
-        return result
-    end
-
     local OriginalCreateBoonLootButtons = rom.game.CreateBoonLootButtons
 
     rom.game.CreateBoonLootButtons = function(screen, lootData, reroll, args)
         -- Call original first
         OriginalCreateBoonLootButtons(screen, lootData, reroll, args)
 
-        -- Grant rarify uses at start of each run (once, on first boon screen)
+        -- Grant rarify uses at start of each run (once, on first boon screen).
+        -- The trait must live permanently in Hero.Traits so that
+        -- UpgradeChoiceScreenCheckRarifyButton (per-frame) can find it and show
+        -- the Rarify contextual button. UpgradeMouseOverUpgradeChoice is then
+        -- invoked when the player presses that button (once per press, not per-frame),
+        -- and it also iterates Hero.Traits directly to find the trait.
         local currentRun = rom.game.CurrentRun
         if currentRun and not currentRun._rarifyGranted then
             currentRun._rarifyGranted = true
@@ -419,11 +376,7 @@ rom.on_import.post(function(scriptName)
                     trait.RarityUpgradeData.RequireNotExcludeFromLastRunBoon = false
                 end
             else
-                -- Store trait in mod-specific field only. UpgradeMouseOverUpgradeChoice
-                -- will inject it temporarily into Hero.Traits for each hover call so
-                -- vanilla can find it, then remove it immediately after. This keeps it
-                -- invisible to keepsake display systems that run at other times.
-                currentRun._modRarifyTrait = {
+                local rarifyTrait = {
                     Name = "RarifyKeepsake",
                     RarityUpgradeData = {
                         Uses = bonusRarifyUses,
@@ -433,6 +386,8 @@ rom.on_import.post(function(scriptName)
                         RequireNotExcludeFromLastRunBoon = false,
                     },
                 }
+                table.insert(currentRun.Hero.Traits, rarifyTrait)
+                currentRun._modRarifyTrait = rarifyTrait
             end
             print("[BonusRarify] Granted " .. bonusRarifyUses .. " rarify uses for this run")
         end
