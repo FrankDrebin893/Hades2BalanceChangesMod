@@ -358,39 +358,59 @@ rom.on_import.post(function(scriptName)
         -- Call original first
         OriginalCreateBoonLootButtons(screen, lootData, reroll, args)
 
-        -- Grant rarify uses at start of each run (once, on first boon screen).
-        -- The trait must live permanently in Hero.Traits so that
-        -- UpgradeChoiceScreenCheckRarifyButton (per-frame) can find it and show
-        -- the Rarify contextual button. UpgradeMouseOverUpgradeChoice is then
-        -- invoked when the player presses that button (once per press, not per-frame),
-        -- and it also iterates Hero.Traits directly to find the trait.
+        -- Grant rarify uses on every boon screen, re-injecting if the game removed the trait.
+        -- UpgradeChoiceScreenCheckRarifyButton iterates Hero.Traits to show the Rarify button;
+        -- UpgradeMouseOverUpgradeChoice (called once per button press) also iterates Hero.Traits.
+        -- _rarifyUsesRemaining is our authoritative counter, synced by the wrapper below.
         local currentRun = rom.game.CurrentRun
-        if currentRun and not currentRun._rarifyGranted then
-            currentRun._rarifyGranted = true
+        if currentRun then
             if rom.game.HeroHasTrait("RarifyKeepsake") then
-                -- Player has the real Calling Card keepsake; boost their uses
-                local trait = rom.game.GetHeroTrait("RarifyKeepsake")
-                if trait and trait.RarityUpgradeData then
-                    trait.RarityUpgradeData.Uses = math.max(trait.RarityUpgradeData.Uses or 0, bonusRarifyUses)
-                    trait.RarityUpgradeData.MultiUse = true
-                    trait.RarityUpgradeData.RequireFated = false
-                    trait.RarityUpgradeData.RequireNotExcludeFromLastRunBoon = false
+                -- Player has the real Calling Card keepsake; boost their uses (once per run)
+                if not currentRun._rarifyBoosted then
+                    currentRun._rarifyBoosted = true
+                    local trait = rom.game.GetHeroTrait("RarifyKeepsake")
+                    if trait and trait.RarityUpgradeData then
+                        trait.RarityUpgradeData.Uses = math.max(trait.RarityUpgradeData.Uses or 0, bonusRarifyUses)
+                        trait.RarityUpgradeData.MultiUse = true
+                        trait.RarityUpgradeData.RequireFated = false
+                        trait.RarityUpgradeData.RequireNotExcludeFromLastRunBoon = false
+                    end
                 end
             else
-                local rarifyTrait = {
-                    Name = "_ModRarify",
-                    RarityUpgradeData = {
-                        Uses = bonusRarifyUses,
-                        MultiUse = true,
-                        MaxRarity = 3,
-                        RequireFated = false,
-                        RequireNotExcludeFromLastRunBoon = false,
-                    },
-                }
-                table.insert(currentRun.Hero.Traits, rarifyTrait)
-                currentRun._modRarifyTrait = rarifyTrait
+                -- Find our mod trait in Hero.Traits
+                local existingTrait = nil
+                for _, t in ipairs(currentRun.Hero.Traits) do
+                    if t.Name == "_ModRarify" then
+                        existingTrait = t
+                        break
+                    end
+                end
+
+                if existingTrait then
+                    -- Trait still present; update reference in case object moved
+                    currentRun._modRarifyTrait = existingTrait
+                    print("[BonusRarify] Trait present, Uses=" .. tostring(existingTrait.RarityUpgradeData.Uses))
+                else
+                    -- Trait missing (removed by game between screens); re-inject with remaining uses
+                    local usesLeft = currentRun._rarifyUsesRemaining or bonusRarifyUses
+                    print("[BonusRarify] Trait missing, re-injecting with " .. tostring(usesLeft) .. " uses")
+                    if usesLeft > 0 then
+                        local rarifyTrait = {
+                            Name = "_ModRarify",
+                            RarityUpgradeData = {
+                                Uses = usesLeft,
+                                MultiUse = true,
+                                MaxRarity = 3,
+                                RequireFated = false,
+                                RequireNotExcludeFromLastRunBoon = false,
+                            },
+                        }
+                        table.insert(currentRun.Hero.Traits, rarifyTrait)
+                        currentRun._modRarifyTrait = rarifyTrait
+                        currentRun._rarifyUsesRemaining = usesLeft
+                    end
+                end
             end
-            print("[BonusRarify] Granted " .. bonusRarifyUses .. " rarify uses for this run")
         end
 
         -- Check if this loot type has free rerolls
@@ -428,6 +448,19 @@ rom.on_import.post(function(scriptName)
         else
             -- Hide reroll button after max uses
             rom.game.SetAlpha({ Id = components.RerollButton.Id, Fraction = 0.0, Duration = 0.2 })
+        end
+    end
+
+    -- Wrap UpgradeMouseOverUpgradeChoice (called once per Rarify button press) to sync
+    -- _rarifyUsesRemaining after each use, so re-injection on the next screen is accurate.
+    local OriginalUpgradeMouseOverUpgradeChoice = rom.game.UpgradeMouseOverUpgradeChoice
+    rom.game.UpgradeMouseOverUpgradeChoice = function(screen, button)
+        OriginalUpgradeMouseOverUpgradeChoice(screen, button)
+        local currentRun = rom.game.CurrentRun
+        if currentRun and currentRun._modRarifyTrait then
+            local uses = currentRun._modRarifyTrait.RarityUpgradeData.Uses
+            currentRun._rarifyUsesRemaining = uses
+            print("[BonusRarify] After rarify press: Uses=" .. tostring(uses))
         end
     end
 
