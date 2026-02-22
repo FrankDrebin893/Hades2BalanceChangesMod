@@ -223,15 +223,16 @@ rom.on_import.post(function(scriptName)
         return
     end
 
-    -- Wrap GetHeroTrait so any code that calls it directly can find our mod rarify trait.
-    -- The trait lives in CurrentRun._modRarifyTrait (not in Hero.Traits permanently),
-    -- so keepsake display systems never see it.
+    -- Wrap GetHeroTrait so TraitUIUpdateText (called inside UpgradeMouseOverUpgradeChoice
+    -- after each upgrade) can find our mod rarify trait by whatever name we gave it.
     local OriginalGetHeroTrait = rom.game.GetHeroTrait
     rom.game.GetHeroTrait = function(traitName)
         local result = OriginalGetHeroTrait(traitName)
-        if result == nil and traitName == "RarifyKeepsake"
-                and rom.game.CurrentRun and rom.game.CurrentRun._modRarifyTrait then
-            return rom.game.CurrentRun._modRarifyTrait
+        if result == nil and rom.game.CurrentRun then
+            local modTrait = rom.game.CurrentRun._modRarifyTrait
+            if modTrait and modTrait.Name == traitName then
+                return modTrait
+            end
         end
         return result
     end
@@ -377,7 +378,7 @@ rom.on_import.post(function(scriptName)
                 end
             else
                 local rarifyTrait = {
-                    Name = "RarifyKeepsake",
+                    Name = "_ModRarify",
                     RarityUpgradeData = {
                         Uses = bonusRarifyUses,
                         MultiUse = true,
